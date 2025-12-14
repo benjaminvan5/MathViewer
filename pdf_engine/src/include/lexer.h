@@ -44,7 +44,7 @@ int peek_byte(PdfFile *pdf);
 int get_byte(PdfFile *pdf);
 
 // -------------------------
-// Whitespace and comment helpers
+// Whitespace and Comment Helpers
 // -------------------------
 
 /**
