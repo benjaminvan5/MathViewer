@@ -53,9 +53,12 @@ PdfFile* read_pdf_file(const char* filename)
     return pdf;
 }
 
-void free_pdf(PdfFile *pdf) {
-    if (!pdf) return;
-    if (pdf->buffer) free(pdf->buffer);
+void free_pdf(PdfFile* pdf)
+{
+    if (!pdf)
+        return;
+    if (pdf->buffer)
+        free(pdf->buffer);
     free(pdf);
 }
 
@@ -109,9 +112,11 @@ void skip_whitespace_and_comments(PdfFile* pdf)
     }
 }
 
-void free_token(Token *t) {
-    if (!t) return;
-    if ((t-> type == TOKEN_NAME || t->type == TOKEN_STRING) && t->str) {
+void free_token(Token* t)
+{
+    if (!t)
+        return;
+    if ((t->type == TOKEN_NAME || t->type == TOKEN_STRING) && t->str) {
         free(t->str);
         t->str = NULL;
     }
@@ -192,12 +197,14 @@ Token parse_name(PdfFile* pdf)
     return token;
 }
 
-Token parse_string_literal(PdfFile *pdf) {
+Token parse_string_literal(PdfFile* pdf)
+{
     skip_whitespace_and_comments(pdf);
 
     Token token;
     token.type = TOKEN_UNKNOWN;
-    if (peek_byte(pdf) != '(') return token;
+    if (peek_byte(pdf) != '(')
+        return token;
 
     pdf->current_pos++;
     size_t start = pdf->current_pos;
@@ -205,7 +212,7 @@ Token parse_string_literal(PdfFile *pdf) {
     int parenthesis_level = 1;
     size_t buf_size = 256;
     size_t len = 0;
-    char *buffer = malloc(buf_size);
+    char* buffer = malloc(buf_size);
 
     while (pdf->current_pos < pdf->size && parenthesis_level > 0) {
         char c = get_byte(pdf);
@@ -214,25 +221,44 @@ Token parse_string_literal(PdfFile *pdf) {
             parenthesis_level++;
         } else if (c == ')') {
             parenthesis_level--;
-            if (parenthesis_level == 0) break;
+            if (parenthesis_level == 0)
+                break;
         } else if (c == '\\') {
             char next = get_byte(pdf);
             switch (next) {
-                case 'n': c = '\n'; break;
-                case 'r': c = '\r'; break;
-                case 't': c = '\t'; break;
-                case 'b': c = '\b'; break;
-                case 'f': c = '\f'; break;
-                case '\\': c = '\\'; break;
-                case '(': c = '('; break;
-                case ')': c = ')'; break;
-                default: c = next; break;
+                case 'n':
+                    c = '\n';
+                    break;
+                case 'r':
+                    c = '\r';
+                    break;
+                case 't':
+                    c = '\t';
+                    break;
+                case 'b':
+                    c = '\b';
+                    break;
+                case 'f':
+                    c = '\f';
+                    break;
+                case '\\':
+                    c = '\\';
+                    break;
+                case '(':
+                    c = '(';
+                    break;
+                case ')':
+                    c = ')';
+                    break;
+                default:
+                    c = next;
+                    break;
             }
         }
 
         if (len + 1 >= buf_size) {
             buf_size *= 2;
-            buffer = realloc(buffer,buf_size);
+            buffer = realloc(buffer, buf_size);
         }
         buffer[len++] = c;
     }
@@ -243,25 +269,29 @@ Token parse_string_literal(PdfFile *pdf) {
     return token;
 }
 
-Token parse_hex_string(PdfFile *pdf) {
+Token parse_hex_string(PdfFile* pdf)
+{
     skip_whitespace_and_comments(pdf);
 
     Token token;
     token.type = TOKEN_UNKNOWN;
-    if (peek_byte(pdf) != '<') return token;
+    if (peek_byte(pdf) != '<')
+        return token;
 
     pdf->current_pos++;
     size_t buf_size = 256;
     size_t len = 0;
-    char *buffer = malloc(buf_size);
+    char* buffer = malloc(buf_size);
 
     while (pdf->current_pos < pdf->size) {
         char c = get_byte(pdf);
-        if (c == '<') break;
-        if (isspace(c)) continue;
+        if (c == '<')
+            break;
+        if (isspace(c))
+            continue;
 
-        char hex[3] = { c, get_byte(pdf), '\0' };
-        buffer[len++] = (char)strtol(hex, NULL, 16);
+        char hex[3] = {c, get_byte(pdf), '\0'};
+        buffer[len++] = (char) strtol(hex, NULL, 16);
 
         if (len >= buf_size) {
             buf_size *= 2;
@@ -275,9 +305,10 @@ Token parse_hex_string(PdfFile *pdf) {
     return token;
 }
 
-Token parse_array_start(PdfFile *pdf) {
+Token parse_array_start(PdfFile* pdf)
+{
     skip_whitespace_and_comments(pdf);
-    Token token = { .type = TOKEN_UNKNOWN };
+    Token token = {.type = TOKEN_UNKNOWN};
     if (peek_byte(pdf) == '[') {
         pdf->current_pos++;
         token.type = TOKEN_ARRAY_START;
@@ -285,9 +316,10 @@ Token parse_array_start(PdfFile *pdf) {
     return token;
 }
 
-Token parse_array_end(PdfFile *pdf) {
+Token parse_array_end(PdfFile* pdf)
+{
     skip_whitespace_and_comments(pdf);
-    Token token = { .type = TOKEN_UNKNOWN };
+    Token token = {.type = TOKEN_UNKNOWN};
     if (peek_byte(pdf) == ']') {
         pdf->current_pos++;
         token.type = TOKEN_ARRAY_END;
@@ -295,9 +327,10 @@ Token parse_array_end(PdfFile *pdf) {
     return token;
 }
 
-Token parse_dict_start(PdfFile *pdf) {
+Token parse_dict_start(PdfFile* pdf)
+{
     skip_whitespace_and_comments(pdf);
-    Token token = { .type = TOKEN_UNKNOWN };
+    Token token = {.type = TOKEN_UNKNOWN};
     if (peek_byte(pdf) == '<' && pdf->buffer[pdf->current_pos + 1] == '<') {
         pdf->current_pos += 2;
         token.type = TOKEN_DICT_START;
@@ -307,9 +340,10 @@ Token parse_dict_start(PdfFile *pdf) {
 }
 
 
-Token parse_dict_end(PdfFile *pdf) {
+Token parse_dict_end(PdfFile* pdf)
+{
     skip_whitespace_and_comments(pdf);
-    Token token = { .type = TOKEN_UNKNOWN };
+    Token token = {.type = TOKEN_UNKNOWN};
     if (peek_byte(pdf) == '>' && pdf->buffer[pdf->current_pos + 1] == '>') {
         pdf->current_pos += 2;
         token.type = TOKEN_DICT_END;
@@ -327,18 +361,24 @@ Token next_token(PdfFile* pdf)
     }
 
     char c = peek_byte(pdf);
-    if (c == '/') return parse_name(pdf);
-    else if (isdigit(c) || c == '+' || c == '-' || c == '.') return parse_number(pdf);
-    else if (c == '(') return parse_string_literal(pdf);
-    else if (c == '<') { 
-        if (pdf->buffer[pdf->current_pos + 1] == '<') return parse_dict_start(pdf);
-        else return parse_hex_string(pdf);
-    }
-    else if (c == '>') {
-        if (pdf->buffer[pdf->current_pos + 1] == '>') return parse_dict_end(pdf);
-    }
-    else if (c == '[') return parse_array_start(pdf);
-    else if (c == ']') return parse_array_end(pdf);
+    if (c == '/')
+        return parse_name(pdf);
+    else if (isdigit(c) || c == '+' || c == '-' || c == '.')
+        return parse_number(pdf);
+    else if (c == '(')
+        return parse_string_literal(pdf);
+    else if (c == '<') {
+        if (pdf->buffer[pdf->current_pos + 1] == '<')
+            return parse_dict_start(pdf);
+        else
+            return parse_hex_string(pdf);
+    } else if (c == '>') {
+        if (pdf->buffer[pdf->current_pos + 1] == '>')
+            return parse_dict_end(pdf);
+    } else if (c == '[')
+        return parse_array_start(pdf);
+    else if (c == ']')
+        return parse_array_end(pdf);
     else {
         Token t = {.type = TOKEN_UNKNOWN};
         pdf->current_pos++;
