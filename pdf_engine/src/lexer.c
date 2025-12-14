@@ -8,6 +8,8 @@
  *  - Dictionaries
  *  - Keywords
  */
+#include "lexer.h"
+#include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -60,4 +62,34 @@ int peek_byte(PdfFile *pdf) {
 int get_byte(PdfFile *pdf) {
     if (pdf->current_pos >= pdf->size) return -1;
     return pdf->buffer[pdf->current_pos++];
+}
+
+int is_whitespace(unsigned char c) {
+    return c == ' ' || c == '\t' || c == '\n' || c == '\r' || c == '\f';
+}
+
+void skip_whitespace(PdfFile *pdf) {
+    while (pdf->current_pos <= pdf->size && is_whitespace(pdf->buffer[pdf->current_pos])) {
+        pdf->current_pos++;
+    }
+}
+
+void skip_comments(PdfFile *pdf) {
+    if (peek_byte(pdf) != '%') return;
+    while (pdf->current_pos <= pdf->size) {
+        unsigned char c = get_byte(pdf);
+        if (c == '\n' || c == '\r') break;
+    }
+}
+
+void skip_whitespace_and_comments(PdfFile *pdf) {
+    while (pdf->current_pos <= pdf->size) {
+        if (is_whitespace(pdf->buffer[pdf->current_pos])) {
+            skip_whitespace(pdf);
+        } else if (peek_byte(pdf) == '%') {
+            skip_comment(pdf);
+        } else {
+            break;
+        }
+    }
 }

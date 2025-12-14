@@ -43,4 +43,28 @@ int peek_byte(PdfFile *pdf);
  */
 int get_byte(PdfFile *pdf);
 
+// -------------------------
+// Whitespace and comment helpers
+// -------------------------
+
+/**
+ * Checks if a character c is whitespace
+ */
+int is_whitespace(unsigned char c);
+
+/**
+ * Moves current position past whitespace
+ */
+void skip_whitespace(PdfFile *pdf);
+
+/**
+ * Moves current position past comments
+ */
+void skip_comments(PdfFile *pdf);
+
+/**
+ * Skip function to skip both whitespace and comments
+ */
+void skip_whitespace_and_comments(PdfFile *pdf);
+
 #endif
