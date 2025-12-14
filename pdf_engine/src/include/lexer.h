@@ -9,7 +9,7 @@
 typedef struct {
     unsigned char *buffer;
     size_t size;
-    size_t current_position;
+    size_t current_pos;
 } PdfFile;
 
 // -------------------------
