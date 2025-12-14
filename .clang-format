@@ -1,6 +1,4 @@
 BasedOnStyle: LLVM
-Language: C
-Standard: C17
 
 # Indentation
 IndentWidth: 4
@@ -11,7 +9,7 @@ ContinuationIndentWidth: 4
 # Braces
 BreakBeforeBraces: Linux
 BraceWrapping:
-  AfterFunction: true
+  AfterFunction: false
   AfterStruct: true
   AfterEnum: true
   AfterUnion: true
